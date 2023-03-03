@@ -1,0 +1,92 @@
+@mixin mixed-background-color($bgcolor-rgb, $fgcolor-rgb, $transparency) {
+	background: linear-gradient(0deg, rgba($fgcolor-rgb, $transparency), rgba($fgcolor-rgb, $transparency)), rgba($bgcolor-rgb, 1);
+}
+
+.lyric-bar {
+    position: fixed;
+    right: 15px;
+    bottom: calc(var(--bottombar-height, 72px) + 15px);
+    //width: 300px;
+    width: 200px;
+    height: 100px;
+    z-index: 500;
+	border-radius: 12px;
+	overflow: hidden;
+	@include mixed-background-color(var(--md-accent-color-bg-rgb), var(--md-accent-color-rgb), 0.1);
+
+	* {
+		font-size: 20px !important;
+		filter: none;
+	}
+	.lyric-bar-inner {
+		/*padding-left: 15px;
+		padding-right: 15px;*/
+		width: 100%;
+		height: 100%;
+		box-sizing: border-box;
+		-webkit-mask-image: linear-gradient(90deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0) 2%, rgba(0,0,0,1) 4%, rgba(0,0,0,1) 96%, rgba(0,0,0,0) 98%, rgba(0,0,0,0) 100%);
+	}
+
+	.rnp-lyrics {
+		width: 100%;
+		height: 100%;
+		margin: 0;
+		padding: 0;
+		--rnp-accent-color-shade-2: var(--md-accent-color);
+
+		.rnp-lyrics-line {
+			height: 100%;
+			width: calc(100% - 30px);
+			padding-left: 15px;
+			padding-right: 15px;
+			//background: #000 !important;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			.rnp-lyrics-single-line-wrapper {
+				width: fit-content;
+				> * {
+					white-space: nowrap;
+					width: fit-content;
+				}
+			}
+			&::before {
+				display: none !important;
+			}
+		}
+
+
+		.rnp-lyrics-line {
+			.rnp-karaoke-word {
+				will-change: opacity, transform;
+			}
+			$idle-opacity: 0.4;
+			&[offset='0'] > div > div { 
+				&.rnp-lyrics-line-karaoke {
+					opacity: 1;
+					.rnp-karaoke-word {
+						opacity: 1;
+						transform: translateY(-2px);
+						transition-property: opacity, transform;
+						transition-timing-function: linear, ease;
+					}
+				}
+			}
+			&:not([offset='0']) > div > div{
+				&.rnp-lyrics-line-karaoke {
+					opacity: 1;
+					.rnp-karaoke-word {
+						transition-property: opacity, transform;
+						opacity: $idle-opacity;
+						transform: translateY(0);
+					}
+				}
+			}
+			.rnp-lyrics-line-karaoke.force-refresh > .rnp-karaoke-word {
+				transition: all 0s !important;
+				opacity: 0.4 !important;
+				transform: translateY(0) !important;
+			}
+		}
+	}
+}
