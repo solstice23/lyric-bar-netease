@@ -47,14 +47,16 @@ export function Lyrics(props) {
 	const [showRomaji, setShowRomaji] = useState(!!getSetting('show-romaji', false));
 	const [useKaraokeLyrics, setUseKaraokeLyrics] = useState(!!getSetting('use-karaoke-lyrics', true));
 	const [firstLineBold, setFirstLineBold] = useState(!!getSetting('first-line-bold', false));
+	const [adaptiveWidth, setAdaptiveWidth] = useState(!!getSetting('adaptive-width', true));
 
 
 	const [lineTransforms, setLineTransforms] = useState([]);
 	const shouldTransit = useRef(true);
 
-	const isPureMusic = lyrics && (
+	const isPureMusic = !lyrics || (
 		lyrics.length <= 1 ||
-		lyrics.length <= 10 && lyrics.some((x) => (x.originalLyric ?? '').includes('纯音乐'))
+		lyrics.length <= 10 && lyrics.some((x) => (x.originalLyric ?? '').includes('纯音乐')) ||
+		document.querySelector('#main-player').getAttribute('data-log')?.includes('"s_ctype":"voice"')
 	);
 
 	useEffect(() => {
@@ -63,7 +65,7 @@ export function Lyrics(props) {
 		} else {
 			containerRef.current.parentElement.parentElement.classList.remove('no-lyrics');
 		}
-	}, [lyrics]);
+	}, [lyrics, songId]);
 
 
 
@@ -128,7 +130,7 @@ export function Lyrics(props) {
 		shouldTransit.current = false;
 		const container = containerRef.current;
 		setContainerHeight(container.clientHeight);
-		setContainerWidth(container.clientWidth - 30);
+		if (!adaptiveWidth) setContainerWidth(container.clientWidth - 30);
 		//console.log('resize', container.clientWidth, container.clientHeight);
 	};
 
@@ -228,6 +230,7 @@ export function Lyrics(props) {
 		if (document.querySelector(".m-player-fm .btnp").classList.contains("btnp-pause")) {
 			setCurrentLineForScrolling(currentLine);
 		}
+		//console.log(id);
 		setSongId(id);
 	};
 	const onPlayProgress = (id, progress) => {
@@ -314,17 +317,22 @@ export function Lyrics(props) {
 		const onFirstLineBoldChange = (e) => {
 			setFirstLineBold(e.detail ?? false);
 		}
+		const onAdaptiveWidthChange = (e) => {
+			setAdaptiveWidth(e.detail ?? true);
+		}
 		document.addEventListener("lb-lyric-font-size", onLyricFontSizeChange);
 		document.addEventListener("lb-show-translation", onShowTranslationChange);
 		document.addEventListener("lb-show-romaji", onShowRomajiChange);
 		document.addEventListener("lb-use-karaoke-lyrics", onUseKaraokeLyricsChange);
 		document.addEventListener("lb-first-line-bold", onFirstLineBoldChange);
+		document.addEventListener("lb-adaptive-width", onAdaptiveWidthChange);
 		return () => {
 			document.removeEventListener("lb-lyric-font-size", onLyricFontSizeChange);
 			document.removeEventListener("lb-show-translation", onShowTranslationChange);
 			document.removeEventListener("lb-show-romaji", onShowRomajiChange);
 			document.removeEventListener("lb-use-karaoke-lyrics", onUseKaraokeLyricsChange);
 			document.removeEventListener("lb-first-line-bold", onFirstLineBoldChange);
+			document.removeEventListener("lb-adaptive-width", onAdaptiveWidthChange);
 		}
 	}, []);
 
@@ -339,7 +347,18 @@ export function Lyrics(props) {
 		}
 	}, []);
 
-	const length = lyrics?.length ?? 0;
+	useEffect(() => {
+		if (adaptiveWidth) {
+			containerRef.current.parentElement.parentElement.classList.add("adaptive-width");
+		} else {
+			containerRef.current.parentElement.parentElement.classList.remove("adaptive-width");
+		}
+		onResize();
+	}, [adaptiveWidth]);
+
+	const setCurrentLineWidth = (width) => {
+		containerRef.current.parentElement.parentElement.style.setProperty("--current-line-width", `${width}px`);
+	}
 
 	return (
 		<>
@@ -363,44 +382,12 @@ export function Lyrics(props) {
 						useKaraokeLyrics={useKaraokeLyrics}
 						transforms={lineTransforms[index] ?? { top: 0, scale: 1, delay: 0, blur: 0 }}
 						outOfRangeKaraoke={/*length > 100 && */Math.abs(index - currentLine) > 2}
+						fontSize={fontSize}
 						containerWidth={containerWidth}
+						adaptiveWidth={adaptiveWidth}
+						setCurrentLineWidth={setCurrentLineWidth}
 					/>
 				})}
-			</div>
-			<div className="rnp-lyrics-switch">
-				<button
-					className={`
-						rnp-lyrics-switch-btn
-						${showTranslation ? 'active' : ''}
-						${hasTranslation ? '' : 'unavailable'}
-					`}
-					title="翻译"
-					onClick={() => {
-						setSetting("show-translation", !showTranslation);
-						setShowTranslation(!showTranslation);
-					}}>译</button>
-				<button 
-					className={`
-						rnp-lyrics-switch-btn
-						${showRomaji ? 'active' : ''}
-						${hasRomaji ? '' : 'unavailable'}
-					`}
-					title="罗马音"
-					onClick={() => {
-						setSetting("show-romaji", !showRomaji);
-						setShowRomaji(!showRomaji);
-					}}>音</button>
-				<button 
-					className={
-						`rnp-lyrics-switch-btn
-						${useKaraokeLyrics ? 'active' : ''}
-						${hasKaraoke ? '' : 'unavailable'}
-					`}
-					title="逐字歌词"
-					onClick={() => {
-						setSetting("use-karaoke-lyrics", !useKaraokeLyrics);
-						setUseKaraokeLyrics(!useKaraokeLyrics);
-					}}>逐字</button>
 			</div>
 		</>
 	);
@@ -411,9 +398,25 @@ function Line(props) {
 	}
 	const offset = props.id - props.currentLine;
 
+	const lineRef = useRef(null);
+
+	useEffect(() => {
+		if (!props.adaptiveWidth) {
+			return;
+		}
+		if (offset == 0) {
+			let maxWidth = 0;
+			for (let i = 0; i < lineRef.current.children.length; i++) {
+				const child = lineRef.current.children[i];
+				maxWidth = Math.max(maxWidth, child.offsetWidth);
+			}
+			props.setCurrentLineWidth(maxWidth);
+		}
+	}, [props.currentLine, props.adaptiveWidth, props.useKaraokeLyrics, props.showRomaji, props.showTranslation, props.fontSize]);
 
 	return (
 		<div
+			ref={lineRef}
 			className={`rnp-lyrics-line ${props.line.isInterlude ? 'rnp-interlude' : ''}`}
 			offset={offset}
 			style={{
@@ -421,7 +424,8 @@ function Line(props) {
 					translateY(${props.transforms.top}px)
 				`,
 				transitionDelay: `${props.transforms.delay}ms`,
-				transitionDuration: `${props.transforms?.duration ?? 500}ms`
+				transitionDuration: `${props.transforms?.duration ?? 500}ms`,
+				visibility: offset > 2 || offset < -2 ? 'hidden' : 'visible',
 			}}>
 			{ props.line.dynamicLyric && props.useKaraokeLyrics && 
 				<SingleLineScroller {...props} active='karaoke'/>
@@ -491,6 +495,9 @@ function SingleLineScroller(props) {
 	}
 
 	useEffect(() => {
+		if (props.adaptiveWidth) {
+			return;
+		}
 		if (Math.abs(props.currentLine - props.id) >= 2) {
 			// console.log(props.currentLine, props.id, props);
 			if (animationFrame.current) {
@@ -529,7 +536,16 @@ function SingleLineScroller(props) {
 				animationFrame.current = null;
 			}
 		}*/
-	}, [props.currentLine, props.currentTime, props.playState, props.seekCounter]);	
+	}, [props.currentLine, props.currentTime, props.playState, props.seekCounter]);
+
+	useEffect(() => {
+		if (props.adaptiveWidth) {
+			if (animationFrame.current) {
+				cancelAnimationFrame(animationFrame.current);
+				animationFrame.current = null;
+			}
+		}
+	}, [props.adaptiveWidth]);
 	
 	return (
 		<div className={`rnp-lyrics-single-line-wrapper`} ref={wrapper}>

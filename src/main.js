@@ -1,4 +1,5 @@
 import './styles.scss';
+import './other-themes-compatibility.scss';
 import { waitForElement, waitForElementAsync, getSetting, setSetting, chunk, copyTextToClipboard } from './utils.js';
 import { LyricBar } from './lyric-bar.js';
 import { Settings } from './settings.js';

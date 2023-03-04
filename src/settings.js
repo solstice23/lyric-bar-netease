@@ -24,6 +24,12 @@ export function Settings(props) {
 			<Typography gutterBottom>提示：Lyric Bar 现处于早期版本，可能会出现各种问题，欢迎反馈</Typography>
 			<FormGroup>
 				<FormControlLabel control={
+					<Switch defaultChecked={!!getSetting('adaptive-width', 'true')} onChange={(e) => {
+						document.dispatchEvent(new CustomEvent('lb-adaptive-width', { detail: e.target.checked }));
+						setSetting('adaptive-width', e.target.checked);
+					}} />
+				} label="自适应宽度" />
+				<FormControlLabel control={
 					<Switch defaultChecked={!!getSetting('show-translation', 'true')} onChange={(e) => {
 						document.dispatchEvent(new CustomEvent('lb-show-translation', { detail: e.target.checked }));
 						setSetting('show-translation', e.target.checked);

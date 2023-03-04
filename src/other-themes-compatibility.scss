@@ -1,0 +1,8 @@
+html[style*='--MoTheme-'] {
+	.lyric-bar {
+		border: 1px solid rgba(255, 255, 255, 0.2);
+		border-radius: var(--MoTheme-bottomMusicBar_radius, 8px);
+		background: var(--MoTheme-bottomMusicBar_backgroundColor, rgba(255, 255, 255, 0.2));
+		backdrop-filter: blur(var(--MoTheme-bottomMusicBar_backgroundBlur, 16px));
+	}
+}
