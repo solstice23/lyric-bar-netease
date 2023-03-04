@@ -34,10 +34,7 @@ export const waitForElementAsync = async (selector) => {
 	return await betterncm.utils.waitForElement(selector);
 }
 export const getSetting = (option, defaultValue = '') => {
-	if (option.endsWith('-fm')) {
-		option = option.replace(/-fm$/, '');
-	}
-	option = "refined-now-playing-" + option;
+	option = "lyric-bar-" + option;
 	let value = localStorage.getItem(option);
 	if (!value) {
 		value = defaultValue;
@@ -50,7 +47,7 @@ export const getSetting = (option, defaultValue = '') => {
 	return value;
 }
 export const setSetting = (option, value) => {
-	option = "refined-now-playing-" + option;
+	option = "lyric-bar-" + option;
 	localStorage.setItem(option, value);
 }
 export const chunk = (input, size) => {

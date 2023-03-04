@@ -1,7 +1,8 @@
 import './styles.scss';
 import { waitForElement, waitForElementAsync, getSetting, setSetting, chunk, copyTextToClipboard } from './utils.js';
-import { Lyrics } from './lyrics.js';
 import { LyricBar } from './lyric-bar.js';
+import { Settings } from './settings.js';
+import { createRoot } from 'react-dom/client';
 
 
 const injectCSS = (css) => {
@@ -72,15 +73,9 @@ plugin.onLoad(async (p) => {
 });
 
 plugin.onConfig((tools) => {
-	return dom("div", {},
-		dom("span", { innerHTML: "打开正在播放界面以调整设置 " , style: { fontSize: "18px" } }),
-		tools.makeBtn("打开", async () => {
-			document.querySelector("a[data-action='max']").click();
-		}),
-		dom("div", { innerHTML: "" , style: { height: "20px" } }),
-		dom("span", { innerHTML: "进入兼容性检查页面 " , style: { fontSize: "18px" } }),
-		tools.makeBtn("兼容性检查", async () => {
-			compatibilityWizard(true);
-		})
-	);
+	const div = document.createElement('div');
+	const divRoot = createRoot(div);
+	divRoot.render(<Settings />);
+
+	return div;
 });

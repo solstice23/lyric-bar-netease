@@ -1,1 +1,0 @@
-Forked from https://github.com/Steve-xmh/LibLyric/

@@ -1,26 +1,11 @@
-import { getSetting, setSetting, copyTextToClipboard } from './utils.js';
-import './lyrics.scss';
-
-import _isEqual from 'lodash/isEqual';
+import { getSetting, setSetting } from './utils.js';
 
 const useState = React.useState;
 const useEffect = React.useEffect;
-const useLayoutEffect = React.useLayoutEffect;
-const useMemo = React.useMemo;
-const useCallback = React.useCallback;
 const useRef = React.useRef;
 
-const isFMSession = () => {
-	return !document.querySelector(".m-player-fm").classList.contains("f-dn");
-}
-// TODO: 监听 DOM 更改以缓存此函数
-
-const customBlurFunc = localStorage.getItem('rnp-custom-blur-func', null) ? new Function('offset', localStorage.getItem('rnp-custom-blur-func')) : null;
-const customScaleFunc = localStorage.getItem('rnp-custom-scale-func', null) ? new Function('offset', localStorage.getItem('rnp-custom-scale-func')) : null;
 
 export function Lyrics(props) {
-	const isFM = props.isFM ?? false;
-
 	const containerRef = useRef(null);
 
 	let [lyrics, setLyrics] = useState(null);
@@ -57,33 +42,33 @@ export function Lyrics(props) {
 	const [containerHeight, setContainerHeight] = useState(0);
 	const [containerWidth, setContainerWidth] = useState(0);
 
-	const [fontSize, setFontSize] = useState(getSetting('lyric-font-size', 32));
-	const [lyricZoom, setLyricZoom] = useState(getSetting('lyric-zoom', false));
-	const [lyricBlur, setLyricBlur] = useState(getSetting('lyric-blur', false));
-	const [showTranslation, setShowTranslation] = useState(getSetting('show-translation', true));
-	const [showRomaji, setShowRomaji] = useState(getSetting('show-romaji', true));
-	const [useKaraokeLyrics, setUseKaraokeLyrics] = useState(getSetting('use-karaoke-lyrics', true));
-	const [karaokeAnimation, setKaraokeAnimation] = useState(getSetting('karaoke-animation', 'float'));
+	const [fontSize, setFontSize] = useState(parseInt(getSetting('lyric-font-size', 20)));
+	const [showTranslation, setShowTranslation] = useState(!!getSetting('show-translation', true));
+	const [showRomaji, setShowRomaji] = useState(!!getSetting('show-romaji', false));
+	const [useKaraokeLyrics, setUseKaraokeLyrics] = useState(!!getSetting('use-karaoke-lyrics', true));
+	const [firstLineBold, setFirstLineBold] = useState(!!getSetting('first-line-bold', false));
 
 
 	const [lineTransforms, setLineTransforms] = useState([]);
 	const shouldTransit = useRef(true);
 
 	const isPureMusic = lyrics && (
-		lyrics.length === 1 ||
+		lyrics.length <= 1 ||
 		lyrics.length <= 10 && lyrics.some((x) => (x.originalLyric ?? '').includes('纯音乐'))
 	);
 
-	const isCurrentModeSession = () => { // 判断是否在当前模式播放 (普通/FM)
-		return isFM ? isFMSession() : !isFMSession();
-	}
+	useEffect(() => {
+		if (isPureMusic) {
+			containerRef.current.parentElement.parentElement.classList.add('no-lyrics');
+		} else {
+			containerRef.current.parentElement.parentElement.classList.remove('no-lyrics');
+		}
+	}, [lyrics]);
+
 
 
 	const onLyricsUpdate = (e) => {
 		if (!e.detail) {
-			return;
-		}
-		if (!isCurrentModeSession()) {
 			return;
 		}
 		shouldTransit.current = false;
@@ -110,6 +95,10 @@ export function Lyrics(props) {
 		}
 	}, []);
 
+	useEffect(() => {
+		document.body.style.setProperty('--lyric-bar-font-size', fontSize + 'px');
+		document.body.style.setProperty('--lyric-bar-lines', ((hasTranslation && showTranslation) + (hasRomaji && showRomaji) + 1));
+	}, [hasTranslation, hasRomaji, showTranslation, showRomaji, fontSize]);
 
 	useEffect(() => { // Recalculate height of each line
 		if (!lyrics) return;
@@ -121,7 +110,7 @@ export function Lyrics(props) {
 		}
 		heightOfItems.current = heights;
 		//console.log('heightOfItems', heightOfItems.current);
-	}, [lyrics, containerWidth, fontSize, showTranslation, showRomaji, useKaraokeLyrics, karaokeAnimation, recalcCounter]);
+	}, [lyrics, containerWidth, fontSize, showTranslation, hasTranslation, showRomaji, hasRomaji, useKaraokeLyrics, recalcCounter]);
 
 	/*const recalcHeightOfItems = () => {
 		if (!lyrics) return;
@@ -140,7 +129,7 @@ export function Lyrics(props) {
 		const container = containerRef.current;
 		setContainerHeight(container.clientHeight);
 		setContainerWidth(container.clientWidth - 30);
-		console.log('resize', container.clientWidth, container.clientHeight);
+		//console.log('resize', container.clientWidth, container.clientHeight);
 	};
 
 	useEffect(() => {
@@ -225,7 +214,7 @@ export function Lyrics(props) {
 	},[
 		currentLineForScrolling,
 		containerHeight, containerWidth,
-		fontSize, lyricZoom, lyricBlur,
+		fontSize,
 		showTranslation, showRomaji, useKaraokeLyrics,
 		recalcCounter,
 		lyrics
@@ -233,14 +222,7 @@ export function Lyrics(props) {
 
 
 	const onPlayStateChange = (id, state) => {
-		if (!isCurrentModeSession()) {
-			return;
-		}
-		if (!isFM) {
-			_playState.current = document.querySelector("#main-player .btnp").classList.contains("btnp-pause");
-		} else {
-			_playState.current = document.querySelector(".m-player-fm .btnp").classList.contains("btnp-pause");
-		}
+		_playState.current = document.querySelector(".m-player:not(.f-dn) .btnp").classList.contains("btnp-pause");
 		setPlayState(_playState.current);
 		//setPlayState((state.split("|")[1] == "resume"));
 		if (document.querySelector(".m-player-fm .btnp").classList.contains("btnp-pause")) {
@@ -249,9 +231,6 @@ export function Lyrics(props) {
 		setSongId(id);
 	};
 	const onPlayProgress = (id, progress) => {
-		if (!isCurrentModeSession()) {
-			return;
-		}
 		//console.log("new progress", id, progress);
 		//setSongId(id);
 		const lastTime = currentTime.current + globalOffset;
@@ -307,10 +286,8 @@ export function Lyrics(props) {
 		const _channalCall = channel.call;
 		channel.call = (name, ...args) => {
 			if (name == "audioplayer.seek") {
-				if (isCurrentModeSession()) {
-					currentTime.current = parseInt(args[1][2] * 1000);
-					setSeekCounter(+new Date());
-				}
+				currentTime.current = parseInt(args[1][2] * 1000);
+				setSeekCounter(+new Date());
 			}
 			_channalCall(name, ...args);
 		};
@@ -321,53 +298,33 @@ export function Lyrics(props) {
 		}
 	});
 
-	const jumpToTime = useCallback((time) => {
-		time -= globalOffset;
-		shouldTransit.current = true;
-		//console.log(songId);
-		channel.call("audioplayer.seek", () => {}, [
-			songId,
-			`${songId}|seek|${Math.random().toString(36).substring(6)}`,
-			time / 1000,
-		]);
-		/*console.log("audioplayer.seek", () => {}, [
-			songId,
-			`${songId}|seek|${Math.random().toString(36).substring(6)}`,
-			time / 1000,
-		]);*/
-		setSeekCounter(+new Date());
-		if (!playState) {
-			if (!isFM) document.querySelector("#main-player .btnp").click();
-			else document.querySelector(".m-player-fm .btnp").click();
-		}
-	}, [songId, playState, globalOffset]);
-
-
 	useEffect(() => {
 		const onLyricFontSizeChange = (e) => {
-			setFontSize(e.detail ?? 32);
+			setFontSize(e.detail ?? 20);
 		}
-		const onLyricZoomChange = (e) => {
-			setLyricZoom(e.detail ?? false);
+		const onShowTranslationChange = (e) => {
+			setShowTranslation(e.detail ?? true);
 		}
-		const onLyricBlurChange = (e) => {
-			setLyricBlur(e.detail ?? false);
+		const onShowRomajiChange = (e) => {
+			setShowRomaji(e.detail ?? false);
 		}
-		const onKaraokeAnimationChange = (e) => {
-			setKaraokeAnimation(e.detail ?? 'float');
-			setTimeout(() => {
-				window.dispatchEvent(new CustomEvent("recalc-lyrics"));
-			}, 0);
+		const onUseKaraokeLyricsChange = (e) => {
+			setUseKaraokeLyrics(e.detail ?? true);
 		}
-		document.addEventListener("rnp-lyric-font-size", onLyricFontSizeChange);
-		document.addEventListener("rnp-lyric-zoom", onLyricZoomChange);
-		document.addEventListener("rnp-lyric-blur", onLyricBlurChange);
-		document.addEventListener("rnp-karaoke-animation", onKaraokeAnimationChange);
+		const onFirstLineBoldChange = (e) => {
+			setFirstLineBold(e.detail ?? false);
+		}
+		document.addEventListener("lb-lyric-font-size", onLyricFontSizeChange);
+		document.addEventListener("lb-show-translation", onShowTranslationChange);
+		document.addEventListener("lb-show-romaji", onShowRomajiChange);
+		document.addEventListener("lb-use-karaoke-lyrics", onUseKaraokeLyricsChange);
+		document.addEventListener("lb-first-line-bold", onFirstLineBoldChange);
 		return () => {
-			document.removeEventListener("rnp-lyric-font-size", onLyricFontSizeChange);
-			document.removeEventListener("rnp-lyric-zoom", onLyricZoomChange);
-			document.removeEventListener("rnp-lyric-blur", onLyricBlurChange);
-			document.removeEventListener("rnp-karaoke-animation", onKaraokeAnimationChange);
+			document.removeEventListener("lb-lyric-font-size", onLyricFontSizeChange);
+			document.removeEventListener("lb-show-translation", onShowTranslationChange);
+			document.removeEventListener("lb-show-romaji", onShowRomajiChange);
+			document.removeEventListener("lb-use-karaoke-lyrics", onUseKaraokeLyricsChange);
+			document.removeEventListener("lb-first-line-bold", onFirstLineBoldChange);
 		}
 	}, []);
 
@@ -387,7 +344,7 @@ export function Lyrics(props) {
 	return (
 		<>
 			<div
-				className={`rnp-lyrics ${isPureMusic ? 'pure-music' : ''}`}
+				className={`rnp-lyrics ${isPureMusic ? 'pure-music' : ''} ${firstLineBold ? 'first-line-bold' : ''}`}
 				ref={containerRef}
 				style={{
 					fontSize: `${fontSize}px`,
@@ -404,10 +361,8 @@ export function Lyrics(props) {
 						showTranslation={showTranslation}
 						showRomaji={showRomaji}
 						useKaraokeLyrics={useKaraokeLyrics}
-						jumpToTime={isPureMusic ? () => {} : jumpToTime}
 						transforms={lineTransforms[index] ?? { top: 0, scale: 1, delay: 0, blur: 0 }}
-						karaokeAnimation={karaokeAnimation}
-						outOfRangeKaraoke={/*length > 100 && */Math.abs(index - currentLine) > 10}
+						outOfRangeKaraoke={/*length > 100 && */Math.abs(index - currentLine) > 2}
 						containerWidth={containerWidth}
 					/>
 				})}
@@ -527,7 +482,7 @@ function SingleLineScroller(props) {
 	const lastTimestamp = useRef(null);
 	const animationHandler = (timeStamp) => {
 		if (lastTimestamp.current == null) lastTimestamp.current = timeStamp;
-		if (props.id==0)console.log('animationHandler', playedTime.current, scrollDelay.current, scrollDuration.current, getCurrentOffset());
+		//if (props.id==0)console.log('animationHandler', playedTime.current, scrollDelay.current, scrollDuration.current, getCurrentOffset());
 		playedTime.current += timeStamp - lastTimestamp.current;
 		lastTimestamp.current = timeStamp;
 		if (setCurrentOffset() && animationFrame.current){
@@ -560,11 +515,11 @@ function SingleLineScroller(props) {
 		scrollDuration.current = props.line.duration * (scrollWidth.current / innerWidth.current) ?? 0;
 		scrollDelay.current = props.line.duration * (innerWidth.current - scrollWidth.current) / 2 / innerWidth.current ?? 0;
 
-		if(props.id==0)console.log(props,containerWidth,
+		/*if(props.id==0)console.log(props,containerWidth,
 			innerWidth.current,
 			scrollWidth.current,
 			scrollDuration.current,
-			scrollDelay.current, playedTime.current);
+			scrollDelay.current, playedTime.current);*/
 	
 		setCurrentOffset();
 		animationFrame.current = requestAnimationFrame(animationHandler);
@@ -615,7 +570,7 @@ function SingleLine(props) {
 			if (!karaokeLineRef.current) return;
 			karaokeLineRef.current.classList.remove('force-refresh');
 		}, 6);
-	}, [props.useKaraokeLyrics, props.seekCounter, props.karaokeAnimation]);
+	}, [props.useKaraokeLyrics, props.seekCounter]);
 
 	const CJKRegex = /([\p{Unified_Ideograph}|\u3040-\u309F|\u30A0-\u30FF])/gu;
 
@@ -624,7 +579,7 @@ function SingleLine(props) {
 			{ props.active == 'karaoke' && <div className="rnp-lyrics-line-karaoke" ref={karaokeLineRef}>
 				{props.line.dynamicLyric.map((word, index) => {
 					return <span
-						key={`${props.karaokeAnimation} ${index}`}
+						key={`${index}`}
 						className={`rnp-karaoke-word ${CJKRegex.test(word.word) ? 'is-cjk' : ''} ${word.word.endsWith(' ') ? 'end-with-space' : ''}`}
 						style={getKaraokeAnimation(word)}>
 							{word.word}

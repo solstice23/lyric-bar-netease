@@ -1,10 +1,11 @@
 {
     "manifest_version": 1,
     "name": "LyricBar",
+    "slug": "LyricBar",
     "author": "solstice23",
     "author_links": ["https://github.com/solstice23"],
     "description": "重新设计的软件内词栏",
-    "preview": "preview.webp",
+    "preview": "preview.png",
     "version": "0.1.0",
     "type": "extension",
     "requirements": ["RefinedNowPlaying"],

@@ -32,8 +32,8 @@ const config = {
               to: path.resolve(__dirname, "dist", "manifest.json"),
             },
             {
-              from: path.resolve(__dirname, "src", "preview.webp"),
-              to: path.resolve(__dirname, "dist", "preview.webp"),
+              from: path.resolve(__dirname, "src", "preview2.png"),
+              to: path.resolve(__dirname, "dist", "preview.png"),
             }
         ]
     }),
