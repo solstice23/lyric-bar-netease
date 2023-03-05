@@ -373,6 +373,7 @@ export function Lyrics(props) {
 						key={`${songId} ${index}`}
 						id={index}
 						line={line}
+						lyrics={lyrics}
 						currentLine={currentLine}
 						currentTime={currentTime.current + globalOffset}
 						seekCounter={seekCounter}
@@ -545,7 +546,7 @@ function SingleLineScroller(props) {
 				animationFrame.current = null;
 			}
 		}
-	}, [props.adaptiveWidth]);
+	}, [props.adaptiveWidth, props.lyrics]);
 	
 	return (
 		<div className={`rnp-lyrics-single-line-wrapper`} ref={wrapper}>

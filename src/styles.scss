@@ -34,10 +34,6 @@ body {
 	transition: opacity .35s ease, height .5s ease;
 	@include mixed-background-color(var(--md-accent-color-bg-rgb, var(--ncm-bg-rgb)), var(--md-accent-color-rgb, var(--ncm-fg-rgb)), 0.1);
 
-	body.floating-bottombar & {
-		--extra-pos-margin: 15px;
-	}
-
 	&.posx-right {
 		right: calc(15px + var(--extra-pos-margin, 0px));
 	}
@@ -50,6 +46,16 @@ body {
 	&.posy-top {
 		top: 75px;
 	}
+
+	body.floating-bottombar & {
+		&.posx-right {
+			right: calc(50vw - var(--bottombar-width) / 2);
+		}
+		&.posx-left {
+			left: calc(50vw - var(--bottombar-width) / 2);
+		}
+	}
+
 
 	&:not(.adaptive-width) {
 		.rnp-lyrics-single-line-wrapper {
@@ -137,6 +143,7 @@ body {
 				}
 				.rnp-lyrics-line-karaoke {
 					transform: translateY(1px);
+					display: block !important;
 				}
 			}
 			&::before {

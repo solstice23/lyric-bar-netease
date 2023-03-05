@@ -38,7 +38,7 @@ const lightTheme = createTheme({
 export function Settings(props) {
 	return (
 		<ThemeProvider theme={darkTheme}>
-			<div className='lyric-bar-settings' style={{backgroundColor: '#0a1929', padding: '15px', borderRadius: '10px'}}>
+			<div className='lyric-bar-settings' style={{padding: '15px'}}>
 				<Stack direction="column" spacing={2}>
 					<Typography gutterBottom>提示：Lyric Bar 现处于早期版本，可能会出现各种问题，欢迎反馈</Typography>
 					<FormGroup>
