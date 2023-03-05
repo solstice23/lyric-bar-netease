@@ -25,8 +25,6 @@ body {
 
 .lyric-bar {
     position: fixed;
-    right: 15px;
-    bottom: calc(var(--bottombar-height, 72px) + var(--bottombar-elevation, 0px) + 15px);
     //width: 300px;
     width: clamp(200px, var(--lyric-bar-width, 400px), 100vw - var(--sidebar-width, 199px) - 25px);
     height: var(--lyric-bar-height);
@@ -36,20 +34,59 @@ body {
 	transition: opacity .35s ease, height .5s ease;
 	@include mixed-background-color(var(--md-accent-color-bg-rgb, var(--ncm-bg-rgb)), var(--md-accent-color-rgb, var(--ncm-fg-rgb)), 0.1);
 
+	body.floating-bottombar & {
+		--extra-pos-margin: 15px;
+	}
+
+	&.posx-right {
+		right: calc(15px + var(--extra-pos-margin, 0px));
+	}
+	&.posx-left {
+		left: calc(var(--leftbar-width, 199px) + 15px + var(--extra-pos-margin, 0px));
+	}
+	&.posy-bottom {
+		bottom: calc(var(--bottombar-height, 72px) + var(--bottombar-elevation, 0px) + 15px);
+	}
+	&.posy-top {
+		top: 75px;
+	}
+
+	&:not(.adaptive-width) {
+		.rnp-lyrics-single-line-wrapper {
+			min-width: 100%;
+			> * {
+				min-width: 100%;
+			}
+		}
+		&.text-align-left .rnp-lyrics-single-line-wrapper > * { text-align: left; }
+		&.text-align-center .rnp-lyrics-single-line-wrapper > * { text-align: center; }
+		&.text-align-right .rnp-lyrics-single-line-wrapper > * { text-align: right; }
+	}
+	&.adaptive-width {
+		&.text-align-left .rnp-lyrics-line { align-items: flex-start; }
+		&.text-align-center .rnp-lyrics-line { align-items: center; }
+		&.text-align-right .rnp-lyrics-line { align-items: flex-end; }
+	}
+
+	&.mouse-through {
+		pointer-events: none !important;
+	}
+
 	&.no-lyrics, body[page-hash*='/m/fm/'] & {
-		opacity: 0;
+		opacity: 0 !important;
 		pointer-events: none;
 	}
-	body.floating-bottombar & {
-		right: 30px;
-	}
 	body.mq-playing & {
-		display: none;
+		visibility: hidden;
+		pointer-events: none;
 	}
 
 	&.adaptive-width {
 		width: calc(var(--current-line-width, 368px) + 32px);
 		transition: opacity .35s ease, height .5s ease, width .5s ease;
+		.lyric-bar-inner {
+			-webkit-mask: none !important;
+		}
 		.lyric-bar-resizer {
 			display: none;
 			pointer-events: none;
@@ -152,7 +189,6 @@ body {
 	.lyric-bar-resizer {
 		position: absolute;
 		top: 0;
-		left: 0;
 		bottom: 0;
 		width: 4px;
 		cursor: col-resize;
