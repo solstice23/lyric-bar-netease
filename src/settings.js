@@ -34,10 +34,26 @@ const lightTheme = createTheme({
 		mode: 'light',
 	},
 });
+const themes = {
+	dark: darkTheme,
+	light: lightTheme,
+};
 
 export function Settings(props) {
+	const [theme, setTheme] = useState(document.body.classList.contains('ncm-light-theme') ? 'light' : 'dark');
+
+	useEffect(() => {
+		new MutationObserver(() => {
+			if (document.body.classList.contains('ncm-light-theme')) {
+				setTheme('light');
+			} else {
+				setTheme('dark');
+			}
+		}).observe(document.body, { attributes: true, attributeFilter: ['class'] });
+	}, []);
+
 	return (
-		<ThemeProvider theme={darkTheme}>
+		<ThemeProvider theme={themes[theme]}>
 			<div className='lyric-bar-settings' style={{padding: '15px'}}>
 				<Stack direction="column" spacing={2}>
 					<Typography gutterBottom>提示：Lyric Bar 现处于早期版本，可能会出现各种问题，欢迎反馈</Typography>

@@ -85,6 +85,7 @@ body {
 	body.mq-playing & {
 		visibility: hidden;
 		pointer-events: none;
+		opacity: 0 !important;
 	}
 
 	&.adaptive-width {
