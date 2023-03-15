@@ -74,12 +74,18 @@ export function Lyrics(props) {
 			return;
 		}
 		shouldTransit.current = false;
-		setCurrentLine(0);
-		setCurrentLineForScrolling(0);
+		if (!e.detail.amend){
+			setCurrentLine(0);
+			setCurrentLineForScrolling(0);
+		}
 		setLyrics(e.detail.lyrics);
 		setHasTranslation(e.detail.lyrics.some((x) => x.translatedLyric));
 		setHasRomaji(e.detail.lyrics.some((x) => x.romanLyric));
 		setHasKaraoke(e.detail.lyrics.some((x) => x.dynamicLyric));
+		if (e.detail.amend) {
+			shouldTransit.current = true;
+			setRecalcCounter(+ new Date());
+		}
 	}
 
 	useEffect(() => {
