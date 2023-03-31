@@ -562,7 +562,6 @@ function SingleLineScroller(props) {
 }
 
 function SingleLine(props) {
-
 	const getKaraokeAnimation = (word) => {
 		if (props.currentLine != props.id){
 			return {
@@ -605,7 +604,7 @@ function SingleLine(props) {
 						key={`${index}`}
 						className={`rnp-karaoke-word ${CJKRegex.test(word.word) ? 'is-cjk' : ''} ${word.word.endsWith(' ') ? 'end-with-space' : ''}`}
 						style={getKaraokeAnimation(word)}>
-							{word.word}
+							<span>{word.word}</span>
 					</span>
 				})}
 			</div> }
