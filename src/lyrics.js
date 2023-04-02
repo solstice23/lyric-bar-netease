@@ -602,7 +602,7 @@ function SingleLine(props) {
 				{props.line.dynamicLyric.map((word, index) => {
 					return <span
 						key={`${index}`}
-						className={`rnp-karaoke-word ${CJKRegex.test(word.word) ? 'is-cjk' : ''} ${word.word.endsWith(' ') ? 'end-with-space' : ''}`}
+						className={`rnp-karaoke-word lyricbar-karaoke-word ${CJKRegex.test(word.word) ? 'is-cjk' : ''} ${word.word.endsWith(' ') ? 'end-with-space' : ''}`}
 						style={getKaraokeAnimation(word)}>
 							<span>{word.word}</span>
 					</span>
