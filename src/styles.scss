@@ -129,6 +129,7 @@ body {
 		.rnp-lyrics-line {
 			height: var(--lyric-bar-height);
 			width: calc(100% - 30px);
+			max-width: calc(100% - 30px);
 			padding-left: 15px;
 			padding-right: 15px;
 			//background: #000 !important;
@@ -152,6 +153,7 @@ body {
 			}
 			&.rnp-interlude .rnp-interlude-inner {
 				width: fit-content;
+				white-space: nowrap;
 			}
 		}
 
