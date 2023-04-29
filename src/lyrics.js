@@ -18,6 +18,7 @@ export function Lyrics(props) {
 	const [hasTranslation, setHasTranslation] = useState(false);
 	const [hasRomaji, setHasRomaji] = useState(false);
 	const [hasKaraoke, setHasKaraoke] = useState(false);
+	const [isUnsynced, setIsUnsynced] = useState(false);
 
 	const [playState, setPlayState] = useState(null);
 	const _playState = useRef(null);
@@ -56,7 +57,8 @@ export function Lyrics(props) {
 	const isPureMusic = !lyrics || (
 		lyrics.length <= 1 ||
 		lyrics.length <= 10 && lyrics.some((x) => (x.originalLyric ?? '').includes('纯音乐')) ||
-		document.querySelector('#main-player').getAttribute('data-log')?.includes('"s_ctype":"voice"')
+		document.querySelector('#main-player').getAttribute('data-log')?.includes('"s_ctype":"voice"') ||
+		isUnsynced
 	);
 
 	useEffect(() => {
@@ -82,6 +84,7 @@ export function Lyrics(props) {
 		setHasTranslation(e.detail.lyrics.some((x) => x.translatedLyric));
 		setHasRomaji(e.detail.lyrics.some((x) => x.romanLyric));
 		setHasKaraoke(e.detail.lyrics.some((x) => x.dynamicLyric));
+		setIsUnsynced(e.detail?.unsynced ?? false);
 		if (e.detail.amend) {
 			shouldTransit.current = true;
 			setRecalcCounter(+ new Date());
@@ -96,6 +99,7 @@ export function Lyrics(props) {
 			setHasTranslation(currentLyrics.some((x) => x.translatedLyric));
 			setHasRomaji(currentLyrics.some((x) => x.romanLyric));
 			setHasKaraoke(currentLyrics.some((x) => x.dynamicLyric));
+			setIsUnsynced(currentLyrics?.unsynced ?? false);
 		}
 		document.addEventListener('lyrics-updated', onLyricsUpdate);
 		return () => {

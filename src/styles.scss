@@ -191,6 +191,9 @@ body {
 			}
 		}
 
+		&.first-line-bold .rnp-lyrics-line > div:first-child > div {
+			font-weight: bold !important;
+		}
 		&:not(.first-line-bold) .rnp-lyrics-line > div:first-child > div {
 			font-weight: unset !important;
 		}
